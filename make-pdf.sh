@@ -12,6 +12,7 @@ pandoc -o course-notes.html -f gfm \
   complexity_modularity_abstraction.md \
   representation_objects.md \
   single_object_doc_instr.md \
+  modular_effects.md \
   polymorphism.md \
   dynamic_binding.md \
   behavioral_subtyping.md \

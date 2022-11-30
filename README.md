@@ -17,6 +17,7 @@
   - Concepts: representation object, representation exposure
 - [How to properly document single-object abstractions](single_object_doc_instr.md)
   - Concepts: defensive programming, contractual programming, preconditions, postconditions, class representation invariants (= private class invariants), class abstract state invariants (= public class invariants), getters, mutators
+- [Modular Effects](modular_effects.md)
 
 ## Inheritance
 
