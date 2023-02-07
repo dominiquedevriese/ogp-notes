@@ -489,6 +489,6 @@ indeed, it is fine to think of object `Fraction.ZERO` as _being_ the number zero
 
 To highlight the fact that it is not correct to think of a `FractionContainer` instance as _being_ a
 fraction, we have named the class `FractionContainer` rather than `Fraction`; however, in practice
-mutable classes are very often called after the type of abstract values they store. For example, in
+mutable classes are very often named after the type of abstract values they store. For example, in
 the Java Collections API, class `ArrayList` is a _mutable_ class for _storing_ lists of objects;
 it is not correct to think of an `ArrayList` object as _being_ a list of objects.
