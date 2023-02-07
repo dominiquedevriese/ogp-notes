@@ -190,7 +190,7 @@ class BusinessLogic {
 
 If we ensure that all log messages in the entire application are printed using `Log.logMessage` rather than directly through `System.out.println`, then it becomes significantly easier to implement some of the changing requirements mentioned above.
 
-For example, the first requirement stated
+For example, one of the requirements stated
 
     Log messages should be shorter than a fixed maximum length.
 
@@ -231,27 +231,85 @@ public class Log {
 All three of these solutions are only possible because there is a single central effect abstraction for logging.
 The different styles have the same benefits as we've seen before when we've used them for enforcing invariants on abstract state or representation invariants on internal state.
 
-The second requirement
+Two other requirements, namely
 
     All log messages should contain a timestamp in addition to their current content,
     so that developers can investigate which operations are taking an unnecessarily long
     time.
 
-and the third requirement
+and
 
     All log messages should be logged to a different output channel, depending on a
     user configuration
 
 similarly become easy to implement, but we leave them as an exercise for the reader.
 
-# Stateful Effect Abstractions #
+# Stateful Effect Abstractions: Objects #
 
-- stateful effect abstractions die een protocol afdwingen en de link met invarianten, abstracte state en pre- en postcondities
-- de afweging tussen static methodes, het singleton patroon en constructor injection
+But what if we want to enforce properties about effects that are a bit more stateful, for example:
+
+    All log messages should contain a sequence number in addition to their current content.
+
+Enforcing this in an effect abstraction requires a form of mutable state: we need to keep a counter in order to determine the sequence number to be printed for every next message.
+It is possible to implement this by introducing global state in our effect implementation class `Log`:
+```java
+public class Log {
+    private static int counter = 0;
+	public static void logMessage(String msg) {
+		System.out.println(String.format("%d: %s", ++counter, msg));
+	}
+}
+```
+In this code, `String.format` will produce a string that contains the integer `counter + 1` in decimal notation, followed by a colon and the specified log message.
+The counter will be kept in a static variable of the `Log` class.
+The variable is global and since it is not final, can be incremented in every invocation of the `logMessage` function.
+
+There are actually many downsides to the use of global mutable state like this `counter` variable.
+One important problem is that global mutable state typically makes code very difficult to test.
+For example, unit tests cannot be kept independent from each other, since their behavior will depend on the state of global variables in methods that they invoke.
+Another reason is that in the presence of concurrency, global mutable state requires synchronization variables or other mechanisms to avoid data races (other courses explain this in more detail).
+
+For that reason, we recommend to implement stateful effect abstractions in an object and store the state in a field of the object:
+```java
+public class Log {
+    private int counter;
+
+    public Log() {
+        counter = 0;
+    }
+
+	public void logMessage(String msg) {
+		System.out.println(String.format("%d: %s", ++counter, msg));
+	}
+}
+```
+The Log object can then be constructed during initialization of an application and a reference to it can be passed to code that needs it:
+```java
+class MyApplication {
+    public static void main() {
+        Log log = new Log();
+        BusinessLogic bl = new BusinessLogic(log);
+        //...
+    }
+}
+
+class BusinessLogic {
+    private Log log;
+    public BusinessLogic(Log log) {
+        this.log = log;
+    }
+
+    public void doSomething() {
+        log.logMessage("Doing something...")
+    }
+}
+```
+
+We leave it as an exercise to the reader that this approach lends itself much better to unit testing, i.e. that every unit test can be given a private implementation of logging whose behavior is independent from that of previous or future other tests.
 
 # Effect Interfaces #
 
-Encapsulating effects is clearly a big improvement already, but our current procedural effect abstractions still have certain limitations.
+Encapsulating effects is clearly a big improvement already, but our current effect abstractions as procedural abstractions or objects still have certain limitations.
 The current solutions assume essentially that the application uses only a single way to log messages.
 For example, imagine that some components of the application need to log to a different destination than others (for example, different log files, a server on the network, etc.) or that the MAXIMUM_LENGTH restriction applies to some of the components but not others.
 
@@ -282,12 +340,17 @@ public class StandardLog implements Log {
         System.out.println(msg);
     }
 }
-public class LengthRestrictedLog {
+public class LengthRestrictedLog implements Log {
     public static final int MAXIMUM_LENGTH = 100;
 	public static void logMessage(String msg) {
         if(msg.length > MAXIMUM_LENGTH) throw new IllegalArgumentException("message too long: '" + msg + "'");
 		System.out.println(msg);
 	}
+}
+public class BlackHoleLog implements Log {
+	public static void logMessage(String msg) {
+	    // do nothing
+    }
 }
 ```
 While previously, we could include only one of the different logging implementations, we can now include all of them.
@@ -310,7 +373,7 @@ class BusinessLogic {
     }
 }
 ```
-We can easily instantiate a client class like `BusinessLogic` with a different implementation of `Log` by providing it to the constructor.
+We can now easily instantiate a client class like `BusinessLogic` with a different implementation of `Log` by providing it to the constructor.
 In fact, several instances of the class can use different implementations of `Log`.
 
 Implementations of effect interfaces may also be parameterized.
@@ -338,24 +401,123 @@ public class Application {
 }
 ```
 
-One important scenario where the possibility of easily switching to alternative effect implementations is important is during testing.
-TODO: stubbing etc.
-
-- het belang van effect interfaces bij testen van effectvolle code, stubs e.d.
+TODO:
 - Explain that a PrintStream is already the kind of effect abstraction we describe.
-- Discuss alternative solution of using `System.setOut()`
-
-# Capabilities and capability-safety #
-
-- Use of effect abstractions is not enforced...
-- Disadvantages: security, code audit
-- Alternative: capability-safety
-- Then effect abstraction does not just represent a way to perform certain effects, but *the only* way to do so.
-  IOW, the authority to perform certain effects
-  Discuss capabilities in Pony
-
+- Compare with non-solution of using `System.setOut()`
 
 TODO:
 - meerdere lagen van effect abstracties
 
-1. Finally, we'd like to be sure that some components never log anything.
+## Effects and Unit Testing ##
+
+One important scenario where the possibility of easily switching to alternative effect implementations is important is during testing.
+Unit testing framework often produce their own console output, in order to show the progress and intermediate results of unit tests.
+It is a pity if this output is polluted by log messages from the components under test.
+We can easily avoid this by instantiating those components, for example, using a `BlackHoleLog` that will throw away log messages during the tests:
+```java
+class BusinessLogicTest {
+    @Test
+    public void testDoSomething() {
+        BusinessLogic bl = new BusinessLogic(new BlackHoleLog());
+        bl.doSomething()
+        assertTrue(bl.hasSomethingBeenDone());
+    }
+}
+```
+Note that this is very easy here because we are only using the effect of console output.
+Testing becomes more difficult if the code also uses effects that produce input, e.g. console input.
+Such effects are often simulated during unit testing, by implementing the effect abstraction to simulate realistic input.
+This practice of simulating effects during unit testing is known as stubbing.
+
+# Capabilities and capability-safety #
+
+Let us take another look at a code snippet we have seen above:
+```java
+public class Application {
+    public static void main() {
+        BusinessLogic bl = new BusinessLogic( new LogWithPrefix("BusinessLogic says: "));
+        Database db = new Database( new LogWithPrefix("Database says: "));
+        // ...
+    }
+}
+```
+It seems like this approach of using effect abstractions very effectively ensures the intended property:
+
+   Every log message should be prepended with the name of the component that generated it.
+
+Unfortunately, this is only guaranteed under certain assumptions about classes like `BusinessLogic`, namely that:
+* `BusinessLogic` only ever logs messages through the `Log` object it receives in its constructor
+* The same is true for all methods invoked by the methods of `BusinessLogic`, the methods invoked by those methods etc.
+There are many ways that `BusinessLogic` could violate those assumptions, for example:
+```java
+class Database {
+    private Log log;
+    // ...
+    public Log getLog() {
+        return log;
+    }
+}
+class BusinessLogic {
+    private Log log;
+    private Database db;
+    public BusinessLogic(Log log) {
+        this.log = log;
+    }
+    public void problem1() {
+        System.out.println("Bypassing the effect abstraction entirely...");
+    }
+    public void problem2() {
+        Log log2 = new StandardLogger();
+        log2.logMessage("Constructing a new logger myself...");
+    }
+    public void problem3() {
+        db.getLog().logMessage("Borrowing someone else's logger...")
+    }
+}
+```
+
+This code shows that in Java, the use of effect abstractions is not enforced.
+We can easily bypass an abstraction like `Log` by accessing `System.out` directly, by constructing an alternative logger ourselves (which indirectly will access `System.out`) or by using an effect abstraction that the code wasn't supposed to have access to (like `db.getLog()` which should probably not be publicly accessible).
+Essentially, the problem in the first two examples is that Java makes primitive effects available to all code in an application, for example by making `System.out` available as a public global variable (and similarly for other effects).
+The third example shows that programmers should make sure to properly encapsulate effect abstractions that classes have access to, similar to what they should do for encapsulating internal mutable state of objects.
+
+In some sense, the method `getLog()` in the `Database` class constitutes a form of [representation exposure](#representation-objects-and-representation-exposure).
+Roughly, the idea is that we can interpret the log output produced through `Database`'s `log` object as part of its internal representation, so that it is an error to return a reference to the object in `getLog()`.
+
+In some languages like [Pony](https://www.ponylang.io/), the use of effect abstractions is enforced more strictly, by offering a feature known as /capability safety/.
+In those languages, primitive effects are never made available through globally accessible APIs like `System.out`.
+Rather, they are made available through effect interfaces that are provided as arguments to the main method.
+An application can then choose who gets access to those primitive effects by giving them (indirect) access to the effect interfaces or not.
+In Java syntax, you may imagine something like this:
+```java
+class StandardLog implements Log {
+    OutputStream out;
+    public StandardLog(OutputStream out) {
+        this.out = out;
+    }
+    public void logMessage(String msg) {
+        out.println(msg);
+    }
+}
+class MyApplication {
+    public static void main(OutputStream stdout, InputStream stdin) {
+        Database db = new Database (new StandardLogger(stdout));
+        BusinessLogic bl = new BusinessLogic(new BlackHoleLog());
+        //...
+    }
+}
+```
+The above code gives the `Database` object access to `stdout` through a `StandardLog` object, but not `BusinessLogic`.
+In a capability-safe language, the `BusinessLogic` object has no alternative way to access stdout and is in fact guaranteed not to be able to access it.
+
+In such languages, objects implementing effect interfaces do not just represent /a/ way to perform certain effects, but they represent the only way to perform certain effects.
+For this reason, references to such objects are called /capabilities/, since they represent the capability or authority of some code to perform certain effects.
+
+Capability safety has many advantages:
+- Code Audit. It becomes very easy to verify whether properties about effects are guaranteed in an application.
+  For example, in the above `MyApplication` class, it is syntactically clear that the application will never access the standard input channel, and that its behavior does not depend on it.
+  Verifying the same property in a Java application would require auditing the entire code base of an application.
+
+- Security. The approach of enforcing a property by only giving components access to capabilities that are guaranteed to respect the property, even works when we invoke untrusted code, i.e. code that is potentially under the control of a malicious adversary.
+  This creates an effective way to restrict the authority of untrusted plugins, potentially buggy libraries etc. and can thus be a very effective way to increase the security of software.
+

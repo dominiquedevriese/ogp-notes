@@ -149,6 +149,8 @@ After a `String` object S has been initialized, field `S.characters` points to a
 
 Notice that the existence of A is completely invisible to clients of S: the API of class `String` provides no means for clients to obtain a reference to an instance's representation object. We say the representation object is *encapsulated*. 
 
+## TODO domi: explain that we can now change to a different representation without breaking client expectations
+
 ## Representation Exposure
 
 Let's see what happens if we break encapsulation. Here is a first attempt to add a method `toCharArray` to class `String`:
