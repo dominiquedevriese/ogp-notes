@@ -46,8 +46,7 @@ Despite this difference, there is also a way that external effects are similar t
 
 Enforcing representation invariants was only possible when classes' internal state was properly encapsulated by making all class variables private and by avoiding representation exposure.
 However, this was not the only reason for encapsulating internal state.
-It also allowed us to easily [change representations](lecture2part1.md): properly encapsulated classes can switch to a different representation without breaking their clients' expectations.
-TODO: where is this explained in the course?
+It also allowed us to easily [change representations](lecture2part1.md#encapsulating-the-fields-of-class-interval): properly encapsulated classes can switch to a different representation without breaking their clients' expectations.
 In other words, when an API is properly encapsulated, clients can be left unaware of internal used to implement it.
 
 Similar situations arise when dealing with external effects.
@@ -155,7 +154,7 @@ Because the responsibility is shared, changing requirements about logging requir
 Another way to say this is that the logging effect was not properly encapsulated.
 
 This situation is very similar to what happens if we do not encapsulate the internal state of a class.
-Imagine that all components in a system would have direct access to implementation details of a class like `Interval` (see [before](lecture2part1.md)), i.e. the class `Interval`'s fields are public and other code reads and writes the fields directly.
+Imagine that all components in a system would have direct access to implementation details of a class like `Interval` (see [before](lecture2part1.md#the-problem)), i.e. the class `Interval`'s fields are public and other code reads and writes the fields directly.
 That would make it impossible to enforce invariants on the internal state of the class and it would also make it impossible to change to a different internal representation.
 The problem in our logging example is no different: internal implementation details of the logging effect are not properly encapsulated and because of this, it is impossible to enforce properties on what is logged or change to a different implementation of the logging effect.
 
@@ -180,7 +179,7 @@ class BusinessLogic {
 In this scenario, the `System.out.println(...)` statements that we had before correspond to direct updats of the `System.out` global variable.
 The new requirements listed above requiring modifying the internal representation of this variable and imposing invariants on it.
 This is hard to implement because the state is not encapsulated, but accessed directly by all other components.
-Instead, it would have been better to use a [data abstraction](complexity_modularity_abstraction.md), for example like this:
+Instead, it would have been better to use a [data abstraction](complexity_modularity_abstraction.md#data-abstractions), for example like this:
 ```java
 class System {
     private String out;
@@ -210,7 +209,7 @@ Of course, we do not actually want to replace the application's standard with an
 Similarly to how we might place a data abstraction around a piece of internal state, we can place an effect abstraction around `System.out`.
 The effect abstraction will be responsible for implementing the effect (for example, log to standard output or to an in-memory buffer or to the network) and enforcing properties of the external effects.
 
-A first way to do this is in the form of a procedural abstraction, by defining a class Log with  a public static procedure `logMessage`, which implements logging once and for all:
+A first way to do this is in the form of a [procedural abstraction](complexity_modularity_abstraction.md#procedural-abstractions), by defining a class Log with  a public static procedure `logMessage`, which implements logging once and for all:
 ```java
 public class Log {
 	public static void logMessage(String msg) {
