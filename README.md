@@ -45,7 +45,7 @@
   - Concepts: packages, package-accessible fields/constructors/methods/classes, package representation invariants, package abstract state invariants, `HashSet`
 - [How to properly document multi-object abstractions](multi_object_doc_instr.md)
 
-## Effects: interfacing with the real world!
+## Effects
 
 - [Modular Effects](modular_effects.md)
 - Effect interfaces

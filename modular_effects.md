@@ -46,7 +46,7 @@ Despite this difference, there is also a way that external effects are similar t
 
 Enforcing representation invariants was only possible when classes' internal state was properly encapsulated by making all class variables private and by avoiding representation exposure.
 However, this was not the only reason for encapsulating internal state.
-It also allowed us to easily change representations: properly encapsulated classes can switch to a different representation without breaking their clients' expectations.
+It also allowed us to easily [change representations](lecture2part1.md): properly encapsulated classes can switch to a different representation without breaking their clients' expectations.
 TODO: where is this explained in the course?
 In other words, when an API is properly encapsulated, clients can be left unaware of internal used to implement it.
 
@@ -149,13 +149,13 @@ Essentially, developers will have to manually inspect and modify the entire appl
 When another new requirement needs to be implemented, the same procedure will have to be followed again, resulting in a lot of manual effort and a lot of opportunity for error.
 
 The reason that these requirements are hard to implement is that the original code was not implemented well.
-It does not apply the main principle of this course ([modular programming](#first-steps-in-modular-programming-part-i)) when it comes to effects.
+It does not apply the main principle of this course ([modular programming](lecture2part1.md)) when it comes to effects.
 Essentially, the responsibility for interacting with the application's log output was distributed over all the code in the application, rather than centralized in a single place.
 Because the responsibility is shared, changing requirements about logging require modifying all the code that is jointly responsible for it.
 Another way to say this is that the logging effect was not properly encapsulated.
 
 This situation is very similar to what happens if we do not encapsulate the internal state of a class.
-Imagine that all components in a system would have direct access to implementation details of a class like `Interval` (see [before](#first-steps-in-modular-programming-part-i)), i.e. the class `Interval`'s fields are public and other code reads and writes the fields directly.
+Imagine that all components in a system would have direct access to implementation details of a class like `Interval` (see [before](lecture2part1.md)), i.e. the class `Interval`'s fields are public and other code reads and writes the fields directly.
 That would make it impossible to enforce invariants on the internal state of the class and it would also make it impossible to change to a different internal representation.
 The problem in our logging example is no different: internal implementation details of the logging effect are not properly encapsulated and because of this, it is impossible to enforce properties on what is logged or change to a different implementation of the logging effect.
 
@@ -180,7 +180,7 @@ class BusinessLogic {
 In this scenario, the `System.out.println(...)` statements that we had before correspond to direct updats of the `System.out` global variable.
 The new requirements listed above requiring modifying the internal representation of this variable and imposing invariants on it.
 This is hard to implement because the state is not encapsulated, but accessed directly by all other components.
-Instead, it would have been better to use a [data abstraction](#managing-complexity-through-modularity-and-abstraction), for example like this:
+Instead, it would have been better to use a [data abstraction](complexity_modularity_abstraction.md), for example like this:
 ```java
 class System {
     private String out;
@@ -379,7 +379,7 @@ public class Log {
 However, even this requires us to decide upfront for every component which type of logging to use and changing a component to a different kind of logging requires changing all places where log messages are generated.
 In other words, our use of (stateful) procedural effect abstractions already allows us to impose constraints on the logs or change the implementation of logging in a central place, but it does not yet offer abstract effects, in the sense that components cannot be entirely agnostic about which type of logging they require.
 
-Fortunately, we have already seen the solution for this problem: [polymorphism](#polymorphism).
+Fortunately, we have already seen the solution for this problem: [polymorphism](polymorphism.md).
 Applying the techniques we've already sene, we can change our `Log` class to an interface so that we can provide several different implementations of it:
 ```java
 public interface Log {
@@ -682,7 +682,7 @@ We can easily bypass an abstraction like `Log` by accessing `System.out` directl
 Essentially, the problem in the first two examples is that Java makes primitive effects available to all code in an application, for example by making `System.out` available as a public global variable (and similarly for other effects).
 The third example shows that programmers should make sure to properly encapsulate effect abstractions that classes have access to, similar to what they should do for encapsulating internal mutable state of objects.
 
-In some sense, the method `getLog()` in the `Database` class constitutes a form of [representation exposure](#representation-objects-and-representation-exposure).
+In some sense, the method `getLog()` in the `Database` class constitutes a form of [representation exposure](representation_objects.md).
 Roughly, the idea is that we can interpret the log output produced through `Database`'s `log` object as part of its internal representation, so that it is an error to return a reference to the object in `getLog()`.
 
 In some languages like [Pony](https://www.ponylang.io/), the use of effect abstractions is enforced more strictly, by offering a feature known as /capability safety/.
