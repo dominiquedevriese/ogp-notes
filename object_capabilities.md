@@ -70,7 +70,7 @@ class StandardLog implements Log {
 }
 class MyApplication {
     public static void main(OutputStream stdout, InputStream stdin) {
-        Database db = new Database (new StandardLogger(stdout));
+        Database db = new Database (new StandardLog(stdout));
         BusinessLogic bl = new BusinessLogic(new BlackHoleLog());
         //...
     }

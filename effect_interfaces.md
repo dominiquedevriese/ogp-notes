@@ -26,7 +26,7 @@ However, even this requires us to decide upfront for every component which type 
 In other words, our use of (stateful) procedural effect abstractions already allows us to impose constraints on the logs or change the implementation of logging in a central place, but it does not yet offer abstract effects, in the sense that components cannot be entirely agnostic about which type of logging they require.
 
 Fortunately, we have already seen the solution for this problem: [polymorphism](polymorphism.md).
-Applying the techniques we've already sene, we can change our `Log` class to an interface so that we can provide several different implementations of it:
+Changing our `Log` class into an interface allows us to provide several implementations of it:
 ```java
 public interface Log {
 	public void logMessage(String msg);
@@ -51,7 +51,7 @@ public class BlackHoleLog implements Log {
 ```
 While previously, we had to choose one of the different logging implementations, we can now include all of them.
 
-By programming against the effect interface `Log`, clients remain fully agnostic of which type of logging they use:
+By programming against the effect interface `Log`, clients now have the ability to remain fully agnostic regarding which type of logging they want to use:
 ```java
 package businesslogic;
 
@@ -73,11 +73,14 @@ We can now easily instantiate a client class like `BusinessLogic` with a differe
 In that sense, the `Log` interface represents an "abstract effect".
 Note that several instances of the class `BusinessLogic` can use different implementations of `Log`.
 
+[AVM: I think the distinction between effet interface implementations and actual in-memory instances of the latter classes is a bit blurry in what follows.
+I would go for effect interface > effect interface implementation > effect instance.]
 In what follows, we will refer to interfaces representing abstract effects as "effect interfaces" and to objects implementing them as "effect instances".
 
 # Implementing Effect Interfaces #
 Representing abstract effects as effect interfaces and implementing them using effect instances has many advantages.
 
+[AVM: sounds like Danish]
 ## Parameterized Effekkkkjjcts ##
 Implementations of effect interfaces may also be parameterized.
 For example, suppose that we have the following requirement:
@@ -125,7 +128,7 @@ public class MyApplication {
 ```
 This implementation has the disadvantage that it cannot be combined with other types of loggers.
 For example, we cannot combine `LengthRestrictedLog` with `LogWithPrefix` to obtain a length-restricted log that will first add a prefix to all messages, or with a hypothetical `FileLog` to send length-restricted logs to a file on disk.
-An alternative is to implement `LengthRestrictedLog` as a wrapper around an underlying log effect instance:
+An solution to this problem is to implement `LengthRestrictedLog` as a wrapper around an underlying log effect instance:
 ```java
 public class LengthRestrictedLog implements Log {
     public static final int MAXIMUM_LENGTH = 100;
@@ -182,13 +185,11 @@ public class SqlDatabase implements Database {
 }
 ```
 This code snippet shows a second effect interface `Database`, which represents a way to access an int-indexed database of records.
-There are implementations of the interface as an in-memory database and an SQL database.
+There are 2 implementations of the interface: as an in-memory database and as an SQL database.
 Both have access to a `Log` effect instance, and the SQL database additionally has access to a hypothetical `SqlServerConnection` effect instance.
-In other words, the effect instances in this code form layers, can each be implemented in several different ways and are implemented in terms of each other.
-Such layers often provide increasingly more abstract interfaces to external effects in the application.
-
-Although we will not elaborate on this here, implementing software by identifying layers of effect abstractions is in fact a very general way to modularly design software.
-Conversely, many interfaces and classes in object-oriented software can be understood as effect interfaces and instances to the application's effects (even if they weren't explicitly intended as such).
+[AVM: changed the following.]
+Hence a concrete instance of the `Database` interface will either be a `InMemoryDataBase` or a `SqlDatabase` object and will feature a `Log` instance of a precise type (`LogWithPrefix`, ...).
+In other words, the effect instances that this code can account for can be organized into layers. In general such layers often provide increasingly more abstract interfaces to external effects in the application.
 
 ## Unit Testing and Effect Stubbing ##
 
@@ -207,7 +208,7 @@ class BusinessLogicTest {
 }
 ```
 Note that this is very easy here because we are only using the effect of console output.
-Testing becomes more difficult if the code also uses effects that produce input, e.g. console input.
+Testing becomes more difficult if the code also uses effects that [AVM: ask for?] produce input, e.g. console input.
 Such effects are often simulated during unit testing, by implementing the effect abstraction to simulate realistic input.
 This practice of simulating effects during unit testing is known as stubbing.
 
@@ -252,9 +253,9 @@ public abstract class OutputStream {
     public void write(byte[] b) throws IOException;
 }
 ```
-For our purposes, we can construct an abstract class as the same as an interface.
+For our purposes, we can consider an abstract class as the same as an interface.
 The class offers a `void write(byte[])` method, making it not very different from our `Log` effect interface and its `void logMessage(String)` (if we imagine that a `String` is just a sequence of bytes).
-Additionally, the Java standard library offers a number of useful effect instances of `OutputStream` that are sometimes similar to the ones we've sketched here:
+The Java standard library offers a number of useful effect instances of `OutputStream` that are sometimes similar to the ones we've sketched here:
 * `ByteArrayOutputStream`: similar to our `BufferLog`.
 * `FileOutputStream`: writes to a file, similar to the hypothetical `FileLog` which we've mentioned somewhere.
 * `CipherOutputStream`: an output stream that applies a cryptographic cipher to the data being written and then writes the resulting bytes to an underlying OutputStream.

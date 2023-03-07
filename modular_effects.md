@@ -1,7 +1,7 @@
 # Effects
 
 A common characteristic of the code examples we have seen so far is that they do not interact with the outside world.
-The code presented performs computations and modifies the internal state of data abstractions, but it does not, for example, directly produce output, interact with the network, hard drive or display of the computer on which it is running.
+The presented code performs computations and modifies the internal state of data abstractions, but it does not, for example, directly produce output, interact with the network, hard drive or display of the computer on which it is running.
 The absence of such external effects differentiates our examples so far from the code of many software applications, where interactions with the outside world are an important part, if not the whole point, of the software's intended behavior.
 For example, an interactive 3D computer games is designed to continuously receive user input, compute the updated state of the game and render it on the user's display.
 Similarly, a network server is designed to continuously respond to incoming network requests according to its configuration.
@@ -10,7 +10,7 @@ In doing so, it may read data from the hard drive or send outgoing network reque
 Generally, when a program interacts with components outside its own private memory, we refer to this as "external effects".
 This type of effects should not be confused with "internal effects": interactions with the program's own mutable state (such as mutable fields of objects) or the use of exceptions or other control flow primitives (e.g. continuations) which are not observable outside the program.
 Both internal and external effects of a program, component or method are sometimes called "side effects" or (preferably) "effects".
-The term "side effects" suggests the perspective that executing a piece of software produces certain direct results in the form of computation results, while interactions with the outside world are indirect or side results.
+The term "side effects" suggests that executing a piece of software always produces certain direct results (e.g., an exit status), while interactions with the outside world are indirect or side results.
 This is usually incorrect since effects are very often the main or only reason for executing certain code and can hardly be considered a side result.
 For this reason, we prefer to use the term "effects".
 
@@ -22,11 +22,17 @@ For example, in some contexts, the allocation of internal memory might be consid
 Before we look at concrete examples, we want to take a step back and mention two points about how external effects are different from internal effects and how they are similar.
 We will explain that (1) contrary to internal effects, external effects affect the correctness of software directly rather than indirectly, but (2) similar to internal effects, it is useful to keep external effects abstract in other components.
 
-### External effects are of direct importance
+### External effects are of direct importance.
+
+[AVM: I don't fully understand the difference.
+"breaking a representation invariant will only indirectly affect the correctness of the software as a whole"
+If a private method unexpectedly crashes on some range of inputs, it can directly affect clients of the class. I think I don't understand the way you use "indirectly" in this subsection.]
+
 Some of the techniques that we have already seen in previous chapters enforce some kind of restriction on internal effects.
-Particularly, representation invariants enforce that internal state of an object is never modified in such a way that it breaks the representation invariant.
+For instance, representation invariants enforce that the effect of mutating the internal state of an object in a method never results in a new inconsistent state.
 When we use a representation invariant to constrain the internal effects of methods, this is not of direct importance in the sense that human users of the software or other systems it communicates with will never directly observe this internal state.
 Instead, we only use representation invariants to make it easier to satisfy contracts, i.e. validate postconditions, preserve class invariants etc.
+[AVM: I don't understand the following sentence ("indirectly affect").]
 In this sense, representation invariants are only indirectly important: breaking a representation invariant will only indirectly affect the correctness of the software as a whole.
 Ultimately, internal effects are only ever a means to an end, an implementation detail that is unobservable to outside systems and humans and only used internally to implement methods.
 
@@ -176,8 +182,8 @@ class BusinessLogic {
 }
 //...
 ```
-In this scenario, the `System.out.println(...)` statements that we had before correspond to direct updats of the `System.out` global variable.
-The new requirements listed above requiring modifying the internal representation of this variable and imposing invariants on it.
+In this scenario, the `System.out.println(...)` statements that we had before correspond to direct updates of the `System.out` global variable.
+Implementing the application features 1-2-3 listed above would require modifying the internal representation of this variable and imposing invariants on it.
 This is hard to implement because the state is not encapsulated, but accessed directly by all other components.
 Instead, it would have been better to use a [data abstraction](complexity_modularity_abstraction.md#data-abstractions), for example like this:
 ```java
@@ -290,7 +296,7 @@ similarly become easy to implement, but we leave them as an exercise for the rea
 
 # Single-Object Effect Abstractions #
 
-But what if we want to enforce properties about effects that are a bit more stateful, for example:
+But what if we want to enforce properties about effects that may mutate memory ("stateful effects"), for example:
 
     All log messages should contain a sequence number in addition to their current content.
 
