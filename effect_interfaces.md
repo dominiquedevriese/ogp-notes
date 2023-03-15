@@ -12,14 +12,14 @@ public class Log {
     public Log() {
     }
 
-	public void logMessageStandard(String msg) {
+    public void logMessageStandard(String msg) {
         if(msg.length > MAXIMUM_LENGTH) throw new IllegalArgumentException("message too long: '" + msg + "'");
-		System.out.println(msg);
-	}
+        System.out.println(msg);
+    }
 
     public void logMessageWithoutRestriction(String msg) {}
-		System.out.println(msg);
-	}
+        System.out.println(msg);
+    }
 }
 ```
 However, even this requires us to decide upfront for every component which type of logging to use and changing a component to a different kind of logging requires changing all places where log messages are generated.
@@ -29,23 +29,26 @@ Fortunately, we have already seen the solution for this problem: [polymorphism](
 Changing our `Log` class into an interface allows us to provide several implementations of it:
 ```java
 public interface Log {
-	public void logMessage(String msg);
+    public void logMessage(String msg);
 }
+
 public class StandardLog implements Log {
     public void logMessage(String msg) {
         System.out.println(msg);
     }
 }
+
 public class LengthRestrictedLog implements Log {
     public static final int MAXIMUM_LENGTH = 100;
-	public static void logMessage(String msg) {
+    public static void logMessage(String msg) {
         if(msg.length > MAXIMUM_LENGTH) throw new IllegalArgumentException("message too long: '" + msg + "'");
-		System.out.println(msg);
-	}
+        System.out.println(msg);
+    }
 }
+
 public class BlackHoleLog implements Log {
-	public static void logMessage(String msg) {
-	    // do nothing
+    public static void logMessage(String msg) {
+        // do nothing
     }
 }
 ```
@@ -114,10 +117,10 @@ For example, we've previously seen the `LengthRestrictedLog` class, which implem
 ```java
 public class LengthRestrictedLog implements Log {
     public static final int MAXIMUM_LENGTH = 100;
-	public void logMessage(String msg) {
+    public void logMessage(String msg) {
         if(msg.length > MAXIMUM_LENGTH) throw new IllegalArgumentException("message too long: '" + msg + "'");
-		System.out.println(msg);
-	}
+        System.out.println(msg);
+    }
 }
 
 public class MyApplication {
@@ -136,10 +139,10 @@ public class LengthRestrictedLog implements Log {
     public LengthRestrictedLog(Log log) {
         this.log = log;
     }
-	public static void logMessage(String msg) {
+    public static void logMessage(String msg) {
         if(msg.length > MAXIMUM_LENGTH) throw new IllegalArgumentException("message too long: '" + msg + "'");
-		log.logMessage(msg);
-	}
+        log.logMessage(msg);
+    }
 }
 
 public class MyApplication {
@@ -214,15 +217,15 @@ This practice of simulating effects during unit testing is known as stubbing.
 
 Sometimes, a test is intended to verify whether interaction with an effect instance happens as intended.
 This can be achieved as well, for example by constructing a stubbed effect instance that stores the interactions that have happened:
+[ES: changed logMessage to use guard clause like implementations above]
 ```java
 class BufferLog implements Log {
     private static int MAXLOGS = 100;
     private String[] buffer = new String[MAXLOGS];
     private int cursor = 0;
     public void logMessage(String msg) {
-        if(cursor < MAXLOGS) {
-            buffer[cursor++] = msg;
-        } else throw new IllegalStateException("Buffer is full");
+        if(cursor >= MAXLOGS) throw new IllegalStateException("Buffer is full");
+        buffer[cursor++] = msg;
     }
     public String[] getBuffer() {
         return buffer.clone();

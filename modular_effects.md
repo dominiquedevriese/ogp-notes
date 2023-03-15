@@ -27,6 +27,7 @@ We will explain that (1) contrary to internal effects, external effects affect t
 [AVM: I don't fully understand the difference.
 "breaking a representation invariant will only indirectly affect the correctness of the software as a whole"
 If a private method unexpectedly crashes on some range of inputs, it can directly affect clients of the class. I think I don't understand the way you use "indirectly" in this subsection.]
+[ES: If I understand correctly by "indirectly affect the correctness" you mean that breaking a representation invariant may or may not be observable depending on how the program is written (eg breaking an invariant on an object that is no longer displayed on screen). Meanwhile executing an external effect incorrectly will always be observable. I do not have a better way to formulate it though, maybe an extra example may make it more clear?]
 
 Some of the techniques that we have already seen in previous chapters enforce some kind of restriction on internal effects.
 For instance, representation invariants enforce that the effect of mutating the internal state of an object in a method never results in a new inconsistent state.
@@ -37,13 +38,13 @@ In this sense, representation invariants are only indirectly important: breaking
 Ultimately, internal effects are only ever a means to an end, an implementation detail that is unobservable to outside systems and humans and only used internally to implement methods.
 
 As mentioned above, the situation is different for external effects: these are often the ultimate purpose of an application and directly observable to outside systems or humans.
-In othere words, external effects are not just important indirectly but their correctness directly affects the correctness of software applications.
+In other words, external effects are not just important indirectly but their correctness directly affects the correctness of software applications.
 For example, if we are implementing a network server application, then ensuring the application's correctness means ensuring various properties of the external effects of the application:
 * The server should continuously listen on network sockets for incoming requests.
 * When a packet comes in, the server should produce a corresponding response.
 * Outgoing responses should be formatted according to the protocol implemented.
 * Outgoing responses should contain the information that corresponds to the incoming request according to their configuration.
-* Outgoing responses should not contain confidential information unless the request has been succesfully authenticated and authorized.
+* Outgoing responses should not contain confidential information unless the request has been successfully authenticated and authorized.
 * ...
 
 ### Abstract effects
@@ -79,19 +80,20 @@ When using Eclipse, this output will be displayed in the "Console" view.
 The code uses the method `println(String)` on the public static member variable `out : PrintStream` of Java's built-in class `System`.
 
 Similarly, we can invoke methods on the public static member `in : InputStream` of the class `System` to read input from a program's standard input channel.
-However, the interface of the `InputStream` class is a bit inconvenient to use and it is easier to use a `Scanner` for this purpose:
+However, the interface of the `InputStream` class is a bit inconvenient to use and it is easier to wrap it in a `Scanner` for this purpose:
 ```java
 class HelloSomeone {
-  	public static void main(String[] args) {
-		System.out.println("What's your name?");
-		Scanner scanner = new Scanner(System.in);
-		String name = scanner.next();
-		System.out.println("Hello, " + name + "!");
-	}
+    public static void main(String[] args) {
+        System.out.println("What's your name?");
+        Scanner scanner = new Scanner(System.in);
+        String name = scanner.next();
+        System.out.println("Hello, " + name + "!");
+    }
 }
 ```
 
 TODO: do we ever use `InputStream`?
+[ES: well, indirecly yes, we wrap it in a scanner in the above example. Other than that, maybe InputStream can be demonstrated by reading from a file in the project? Maybe reading the map of a game from a text file?]
 
 # A non-modular treatment of effects #
 
@@ -218,9 +220,9 @@ The effect abstraction will be responsible for implementing the effect (for exam
 A first way to do this is in the form of a [procedural abstraction](complexity_modularity_abstraction.md#procedural-abstractions), by defining a class Log with  a public static procedure `logMessage`, which implements logging once and for all:
 ```java
 public class Log {
-	public static void logMessage(String msg) {
-		System.out.println(msg);
-	}
+    public static void logMessage(String msg) {
+        System.out.println(msg);
+    }
 }
 ```
 All other components in the application can then invoke the static method `Log.logMessage()` rather than `System.out.println()`, for example:
@@ -248,9 +250,9 @@ This is now easy to implement and requires modifying only the effect abstraction
 ```java
 public class Log {
     public static final int MAXIMUM_LENGTH = 100;
-	public static void logMessage(String msg) {
-		System.out.println(msg.substring(0,MAXIMUM_LENGTH));
-	}
+    public static void logMessage(String msg) {
+        System.out.println(msg.substring(0,MAXIMUM_LENGTH));
+    }
 }
 ```
 Note that here, we are manually truncating log messages that are longer than the maximum length.
@@ -258,10 +260,10 @@ We could also implement the requirement in two alternative ways: either using de
 ```java
 public class Log {
     public static final int MAXIMUM_LENGTH = 100;
-	public static void logMessage(String msg) {
-        if(msg.length > MAXIMUM_LENGTH) throw new IllegalArgumentException("message too long: '" + msg + "'");
-		System.out.println(msg);
-	}
+    public static void logMessage(String msg) {
+        if (msg.length > MAXIMUM_LENGTH) throw new IllegalArgumentException("message too long: '" + msg + "'");
+        System.out.println(msg);
+    }
 }
 ```
 or by imposing a contract:
@@ -273,9 +275,9 @@ public class Log {
      * @pre msg.length <= MAXIMUM_LENGTH
      * @post true
      */
-	public static void logMessage(String msg) {
-		System.out.println(msg);
-	}
+    public static void logMessage(String msg) {
+        System.out.println(msg);
+    }
 }
 ```
 All three of these solutions are easy to implement because there is a single central effect abstraction for logging.
@@ -305,9 +307,9 @@ It is possible to implement this by introducing global state in our effect imple
 ```java
 public class Log {
     private static int counter = 0;
-	public static void logMessage(String msg) {
-		System.out.println(String.format("%d: %s", ++counter, msg));
-	}
+    public static void logMessage(String msg) {
+        System.out.println(String.format("%d: %s", ++counter, msg));
+    }
 }
 ```
 In this code, `String.format` will produce a string that contains the integer `counter + 1` in decimal notation, followed by a colon and the specified log message.
@@ -328,9 +330,9 @@ public class Log {
         counter = 0;
     }
 
-	public void logMessage(String msg) {
-		System.out.println(String.format("%d: %s", ++counter, msg));
-	}
+    public void logMessage(String msg) {
+        System.out.println(String.format("%d: %s", ++counter, msg));
+    }
 }
 ```
 The Log object can then be constructed during initialization of an application and a reference can be passed to code that needs it:
