@@ -53,7 +53,7 @@ The third example shows that programmers should make sure to properly encapsulat
 In some sense, the method `getLog()` in the `Database` class constitutes a form of [representation exposure](representation_objects.md).
 Roughly, the idea is that we can interpret the log output produced through `Database`'s `log` object as part of its internal representation, so that it is an error to return a reference to the object in `getLog()`.
 
-In some languages like [Pony](https://www.ponylang.io/), the use of effect abstractions is enforced more strictly, by offering a feature known as *capability safety*. [ES: I assume you meant to italicize capability safety?]
+In some languages like [Pony](https://www.ponylang.io/), the use of effect abstractions is enforced more strictly, by offering a feature known as *capability safety*.
 In those languages, primitive effects are never made available through globally accessible APIs like `System.out`.
 Rather, they are made available through effect interfaces that are provided as arguments to the main method.
 An application can then choose who gets access to those primitive effects by giving them (indirect) access to the effect interfaces or not.

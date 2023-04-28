@@ -83,8 +83,7 @@ In what follows, we will refer to interfaces representing abstract effects as "e
 # Implementing Effect Interfaces #
 Representing abstract effects as effect interfaces and implementing them using effect instances has many advantages.
 
-[AVM: sounds like Danish]
-## Parameterized Effekkkkjjcts ##
+## Parameterized Effects ##
 Implementations of effect interfaces may also be parameterized.
 For example, suppose that we have the following requirement:
 
@@ -131,7 +130,7 @@ public class MyApplication {
 ```
 This implementation has the disadvantage that it cannot be combined with other types of loggers.
 For example, we cannot combine `LengthRestrictedLog` with `LogWithPrefix` to obtain a length-restricted log that will first add a prefix to all messages, or with a hypothetical `FileLog` to send length-restricted logs to a file on disk.
-An solution to this problem is to implement `LengthRestrictedLog` as a wrapper around an underlying log effect instance:
+A solution to this problem is to implement `LengthRestrictedLog` as a wrapper around an underlying log effect instance:
 ```java
 public class LengthRestrictedLog implements Log {
     public static final int MAXIMUM_LENGTH = 100;
@@ -188,11 +187,13 @@ public class SqlDatabase implements Database {
 }
 ```
 This code snippet shows a second effect interface `Database`, which represents a way to access an int-indexed database of records.
-There are 2 implementations of the interface: as an in-memory database and as an SQL database.
+There are two implementations of the interface: as an in-memory database and as an SQL database.
 Both have access to a `Log` effect instance, and the SQL database additionally has access to a hypothetical `SqlServerConnection` effect instance.
-[AVM: changed the following.]
 Hence a concrete instance of the `Database` interface will either be a `InMemoryDataBase` or a `SqlDatabase` object and will feature a `Log` instance of a precise type (`LogWithPrefix`, ...).
 In other words, the effect instances that this code can account for can be organized into layers. In general such layers often provide increasingly more abstract interfaces to external effects in the application.
+
+Although we will not elaborate on this here, implementing software by identifying layers of effect abstractions is in fact a very general way to modularly design software.
+Conversely, many interfaces and classes that you can find in practical object-oriented source code can be understood as effect interfaces and instances to the application's effects (even if they weren't explicitly intended as such).
 
 ## Unit Testing and Effect Stubbing ##
 
@@ -211,13 +212,12 @@ class BusinessLogicTest {
 }
 ```
 Note that this is very easy here because we are only using the effect of console output.
-Testing becomes more difficult if the code also uses effects that [AVM: ask for?] produce input, e.g. console input.
+Testing becomes more difficult if the code also uses effects that expect input, e.g. console input.
 Such effects are often simulated during unit testing, by implementing the effect abstraction to simulate realistic input.
 This practice of simulating effects during unit testing is known as stubbing.
 
 Sometimes, a test is intended to verify whether interaction with an effect instance happens as intended.
 This can be achieved as well, for example by constructing a stubbed effect instance that stores the interactions that have happened:
-[ES: changed logMessage to use guard clause like implementations above]
 ```java
 class BufferLog implements Log {
     private static int MAXLOGS = 100;
