@@ -45,12 +45,6 @@
   - Concepts: packages, package-accessible fields/constructors/methods/classes, package representation invariants, package abstract state invariants, `HashSet`
 - [How to properly document multi-object abstractions](multi_object_doc_instr.md)
 
-## Effects
-
-- [Modular Effects](modular_effects.md)
-- [Effect interfaces](effect_interfaces.md)
-- [Object capabilities](object_capabilities.md)
-
 ## Advanced topics
 
 (Students of course H02C5A can ignore this material.)
