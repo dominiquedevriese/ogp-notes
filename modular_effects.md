@@ -3,7 +3,7 @@
 A common characteristic of the code examples we have seen so far is that they do not interact with the outside world.
 The presented code performs computations and modifies the internal state of data abstractions, but it does not, for example, directly produce output, interact with the network, hard drive or display of the computer on which it is running.
 The absence of such external effects differentiates our examples so far from the code of many software applications, where interactions with the outside world are an important part, if not the whole point, of the software's intended behavior.
-For example, an interactive 3D computer games is designed to continuously receive user input, compute the updated state of the game and render it on the user's display.
+For example, an interactive 3D computer game is designed to continuously receive user input, compute the updated state of the game and render it on the user's display.
 Similarly, a network server is designed to continuously respond to incoming network requests according to its configuration.
 In doing so, it may read data from the hard drive or send outgoing network requests to a database or other server, and wait for and use the responses to these requests.
 
@@ -24,18 +24,12 @@ We will explain that (1) contrary to internal effects, external effects affect t
 
 ### External effects are of direct importance.
 
-[AVM: I don't fully understand the difference.
-"breaking a representation invariant will only indirectly affect the correctness of the software as a whole"
-If a private method unexpectedly crashes on some range of inputs, it can directly affect clients of the class. I think I don't understand the way you use "indirectly" in this subsection.]
-[ES: If I understand correctly by "indirectly affect the correctness" you mean that breaking a representation invariant may or may not be observable depending on how the program is written (eg breaking an invariant on an object that is no longer displayed on screen). Meanwhile executing an external effect incorrectly will always be observable. I do not have a better way to formulate it though, maybe an extra example may make it more clear?]
-
 Some of the techniques that we have already seen in previous chapters enforce some kind of restriction on internal effects.
 For instance, representation invariants enforce that the effect of mutating the internal state of an object in a method never results in a new inconsistent state.
-When we use a representation invariant to constrain the internal effects of methods, this is not of direct importance in the sense that human users of the software or other systems it communicates with will never directly observe this internal state.
-Instead, we only use representation invariants to make it easier to satisfy contracts, i.e. validate postconditions, preserve class invariants etc.
-[AVM: I don't understand the following sentence ("indirectly affect").]
-In this sense, representation invariants are only indirectly important: breaking a representation invariant will only indirectly affect the correctness of the software as a whole.
-Ultimately, internal effects are only ever a means to an end, an implementation detail that is unobservable to outside systems and humans and only used internally to implement methods.
+When we use a representation invariant to constrain the internal effects of methods, this is not a problem in itself (the incorrect state in memory is not directly visible to users or other systems), but only when it later causes wrong output, incorrect behavior or program crashes.
+As such, representation invariants restrict internal effects, but this restriction is not a goal in itself.
+It is only there to make it easier to satisfy contracts, i.e. validate postconditions, preserve class invariants and ultimately guarantee correct program behavior.
+This is essentially because internal effects are just a means to an end, an implementation detail that is unobservable to outside systems and humans and only used internally to implement methods.
 
 As mentioned above, the situation is different for external effects: these are often the ultimate purpose of an application and directly observable to outside systems or humans.
 In other words, external effects are not just important indirectly but their correctness directly affects the correctness of software applications.
@@ -54,7 +48,7 @@ Despite this difference, there is also a way that external effects are similar t
 Enforcing representation invariants was only possible when classes' internal state was properly encapsulated by making all class variables private and by avoiding representation exposure.
 However, this was not the only reason for encapsulating internal state.
 It also allowed us to easily [change representations](lecture2part1.md#encapsulating-the-fields-of-class-interval): properly encapsulated classes can switch to a different representation without breaking their clients' expectations.
-In other words, when an API is properly encapsulated, clients can be left unaware of internal used to implement it.
+In other words, when an API is properly encapsulated, clients can be left unaware of internal implementation details.
 
 Similar situations arise when dealing with external effects.
 For example, when a webserver invokes a database, it is often desirable to keep the server code unaware of how this database is accessed: as an in-memory database (requiring only internal effects to access), a database on the local disk (requiring disk access) or a remote database accross the internet (accessed over the network).
@@ -91,9 +85,6 @@ class HelloSomeone {
     }
 }
 ```
-
-TODO: do we ever use `InputStream`?
-[ES: well, indirecly yes, we wrap it in a scanner in the above example. Other than that, maybe InputStream can be demonstrated by reading from a file in the project? Maybe reading the map of a game from a text file?]
 
 # A non-modular treatment of effects #
 
@@ -163,7 +154,7 @@ Another way to say this is that the logging effect was not properly encapsulated
 
 This situation is very similar to what happens if we do not encapsulate the internal state of a class.
 Imagine that all components in a system would have direct access to implementation details of a class like `Interval` (see [before](lecture2part1.md#the-problem)), i.e. the class `Interval`'s fields are public and other code reads and writes the fields directly.
-That would make it impossible to enforce invariants on the internal state of the class and it would also make it impossible to change to a different internal representation.
+That would make it practically impossible to enforce invariants on the internal state of the class and it would also make it impossible to change to a different internal representation.
 The problem in our logging example is no different: internal implementation details of the logging effect are not properly encapsulated and because of this, it is impossible to enforce properties on what is logged or change to a different implementation of the logging effect.
 
 # Procedural Effect Abstractions #
@@ -213,7 +204,7 @@ class BusinessLogic {
 ```
 With such a design, many of the requirements above could be implemented simply by modifying the implementation of `System` and leaving its clients untouched, saving us a big amount of work.
 
-Of course, we do not actually want to replace the application's standard with an in-memory buffer, but we can still get inspiration from the analogy.
+Of course, we do not actually want to replace the application's standard output channel with an in-memory buffer, but we can still get inspiration from the analogy.
 Similarly to how we might place a data abstraction around a piece of internal state, we can place an effect abstraction around `System.out`.
 The effect abstraction will be responsible for implementing the effect (for example, log to standard output or to an in-memory buffer or to the network) and enforcing properties of the external effects.
 
@@ -261,7 +252,8 @@ We could also implement the requirement in two alternative ways: either using de
 public class Log {
     public static final int MAXIMUM_LENGTH = 100;
     public static void logMessage(String msg) {
-        if (msg.length > MAXIMUM_LENGTH) throw new IllegalArgumentException("message too long: '" + msg + "'");
+        if (msg.length > MAXIMUM_LENGTH)
+            throw new IllegalArgumentException("message too long: '" + msg + "'");
         System.out.println(msg);
     }
 }
@@ -281,7 +273,7 @@ public class Log {
 }
 ```
 All three of these solutions are easy to implement because there is a single central effect abstraction for logging.
-The different styles have the same advantages and disadvantages as when we've used them for enforcing invariants on abstract state or representation invariants on internal state.
+The different styles have the same advantages and disadvantages as before, when we used them for enforcing invariants on abstract state or representation invariants on internal state.
 
 Two other requirements, namely
 

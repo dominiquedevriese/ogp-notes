@@ -53,7 +53,7 @@ The third example shows that programmers should make sure to properly encapsulat
 In some sense, the method `getLog()` in the `Database` class constitutes a form of [representation exposure](representation_objects.md).
 Roughly, the idea is that we can interpret the log output produced through `Database`'s `log` object as part of its internal representation, so that it is an error to return a reference to the object in `getLog()`.
 
-In some languages like [Pony](https://www.ponylang.io/), the use of effect abstractions is enforced more strictly, by offering a feature known as *capability safety*.
+In some languages like [Pony](https://www.ponylang.io/), the use of effect abstractions is enforced more strictly than in Java, by offering a feature known as *capability safety*.
 In those languages, primitive effects are never made available through globally accessible APIs like `System.out`.
 Rather, they are made available through effect interfaces that are provided as arguments to the main method.
 An application can then choose who gets access to those primitive effects by giving them (indirect) access to the effect interfaces or not.
@@ -79,13 +79,14 @@ class MyApplication {
 The above code gives the `Database` object access to `stdout` through a `StandardLog` object, but not `BusinessLogic`.
 In a capability-safe language, the `BusinessLogic` object has no alternative way to access stdout and is in fact guaranteed not to be able to access it.
 
-In such languages, objects implementing effect interfaces do not just represent *a* way to perform certain effects, but they represent the only way to perform certain effects.
+In such languages, objects implementing effect interfaces do not just represent *a* way to perform certain effects, but they represent *the only* way or *the capability* to perform certain effects.
 For this reason, references to such objects are called *capabilities*, since they represent the capability or authority of some code to perform certain effects.
 
 Capability safety has many advantages:
 - Code Audit. It becomes very easy to verify whether properties about effects are guaranteed in an application.
-  For example, in the above `MyApplication` class, it is syntactically clear that the application will never access the standard input channel, and that its behavior does not depend on it.
-  Verifying the same property in a Java application would require auditing the entire code base of an application.
+  For example, if the above `MyApplication` class were implemented in a capability safe programming language, then it would be syntactically clear that the application will never access the standard input channel, and that its behavior does not depend on it.
+  Verifying the same property in Java would require auditing the entire code base of an application.
 
 - Security. The approach of enforcing a property by only giving components access to capabilities that are guaranteed to respect the property, even works when we invoke untrusted code, i.e. code that is potentially under the control of a malicious adversary.
   This creates an effective way to restrict the authority of untrusted plugins, potentially buggy libraries etc. and can thus be a very effective way to increase the security of software.
+  In fact, the idea of using capabilities originates in the field of security and is sometimes referred to as "capability-based security".

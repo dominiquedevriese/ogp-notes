@@ -13,7 +13,8 @@ public class Log {
     }
 
     public void logMessageStandard(String msg) {
-        if(msg.length > MAXIMUM_LENGTH) throw new IllegalArgumentException("message too long: '" + msg + "'");
+        if(msg.length > MAXIMUM_LENGTH)
+            throw new IllegalArgumentException("message too long: '" + msg + "'");
         System.out.println(msg);
     }
 
@@ -41,7 +42,8 @@ public class StandardLog implements Log {
 public class LengthRestrictedLog implements Log {
     public static final int MAXIMUM_LENGTH = 100;
     public static void logMessage(String msg) {
-        if(msg.length > MAXIMUM_LENGTH) throw new IllegalArgumentException("message too long: '" + msg + "'");
+        if(msg.length > MAXIMUM_LENGTH)
+            throw new IllegalArgumentException("message too long: '" + msg + "'");
         System.out.println(msg);
     }
 }
@@ -76,12 +78,10 @@ We can now easily instantiate a client class like `BusinessLogic` with a differe
 In that sense, the `Log` interface represents an "abstract effect".
 Note that several instances of the class `BusinessLogic` can use different implementations of `Log`.
 
-[AVM: I think the distinction between effet interface implementations and actual in-memory instances of the latter classes is a bit blurry in what follows.
-I would go for effect interface > effect interface implementation > effect instance.]
-In what follows, we will refer to interfaces representing abstract effects as "effect interfaces" and to objects implementing them as "effect instances".
+In what follows, we will refer to interfaces representing abstract effects as "effect interfaces", to classes implementing such an interface as "effect interface implementations" and to objects of those classes as "effect instances".
 
 # Implementing Effect Interfaces #
-Representing abstract effects as effect interfaces and implementing them using effect instances has many advantages.
+Representing abstract effects as effect interfaces and implementing them in effect instances has many advantages.
 
 ## Parameterized Effects ##
 Implementations of effect interfaces may also be parameterized.
@@ -117,7 +117,8 @@ For example, we've previously seen the `LengthRestrictedLog` class, which implem
 public class LengthRestrictedLog implements Log {
     public static final int MAXIMUM_LENGTH = 100;
     public void logMessage(String msg) {
-        if(msg.length > MAXIMUM_LENGTH) throw new IllegalArgumentException("message too long: '" + msg + "'");
+        if(msg.length > MAXIMUM_LENGTH)
+            throw new IllegalArgumentException("message too long: '" + msg + "'");
         System.out.println(msg);
     }
 }
@@ -139,7 +140,8 @@ public class LengthRestrictedLog implements Log {
         this.log = log;
     }
     public static void logMessage(String msg) {
-        if(msg.length > MAXIMUM_LENGTH) throw new IllegalArgumentException("message too long: '" + msg + "'");
+        if(msg.length > MAXIMUM_LENGTH)
+            throw new IllegalArgumentException("message too long: '" + msg + "'");
         log.logMessage(msg);
     }
 }
@@ -206,8 +208,8 @@ class BusinessLogicTest {
     @Test
     public void testDoSomething() {
         BusinessLogic bl = new BusinessLogic(new BlackHoleLog());
-        bl.doSomething()
-        assertTrue(bl.hasSomethingBeenDone());
+        bl.doSomething();
+        assertTrue(bl.isSomethingDone());
     }
 }
 ```
@@ -230,6 +232,9 @@ class BufferLog implements Log {
     public String[] getBuffer() {
         return buffer.clone();
     }
+    public int getNbLogs() {
+        return cursor;
+    }
 }
 
 class BusinessLogicTest {
@@ -237,11 +242,11 @@ class BusinessLogicTest {
     public void testDoSomething() {
         BufferLog log = new BufferLog();
         BusinessLogic bl = new BusinessLogic(log);
-        bl.doSomething()
+        bl.doSomething();
+        assertEquals(2, log.getNbLogs());
         String[] logs = log.getBuffer()
         assertEquals("log message 1", buf[0]);
         assertEquals("log message 2", buf[1]);
-        assertNull(buf[2]);
     }
 }
 ```
@@ -265,9 +270,9 @@ The Java standard library offers a number of useful effect instances of `OutputS
 
 Additionally, the `java.io.PrintStream` class extends `OutputStream` with some convenient methods like `void println(String)` and writes data to an underlying OutputStream.
 In fact, the object `System.out` which we have been using in our examples is an instance of the `PrintStream`.
-As such, our examples have essentially been building a `Log` abstract effect layer on top of an abstract output stream effect layer, although we hadn't initially noticed.
+As such, our examples have essentially been building a `Log` abstract effect layer on top of an abstract output stream effect layer, although we haven't initially noticed.
 
-Note that this means we could have implemented `StandardLog` as a wrapper around an output stream to obtain a `Log` effect instance that can write to an arbitrary underlying output stream, whether it streams into a buffer, file or encrypted network connection:
+Note that this means we could have implemented `StandardLog` as a wrapper around an output stream to obtain a `Log` effect instance that can write to an arbitrary underlying output stream, whether it streams into the standard output or standard error channel, a buffer, file or encrypted network connection:
 ```java
 public class StandardLog implements Log {
     private OutputStream out;
