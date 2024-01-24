@@ -48,8 +48,8 @@
 ## Effects
 
 - [Modular Effects](modular_effects.md)
-- Effect interfaces
-- Object capabilities
+- [Effect interfaces](effect_interfaces.md)
+- [Object capabilities](object_capabilities.md)
 
 ## Advanced topics
 
