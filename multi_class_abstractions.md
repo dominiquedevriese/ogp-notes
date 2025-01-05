@@ -122,7 +122,7 @@ it may be accessed by any code in the same package.
 
 We conclude that to implement multi-class abstractions, we generally need to implement them using a _package_ as the unit of encapsulation rather than a _class_. We apply this
 principle to the example by moving the example client (class `BigTeamsTest`) out of package `bigteams` and by making the fields of class `ProjectCourseStudent` and `Team` package-accessible.
-Analogously to class-encapsulated abstractions, we specify package representation invariants (using `@invar` clauses in the fields' Javadoc comments) and package abstract state invariants (using `@invar` clauses in the classes' Javadoc comments):
+Analogously to class-encapsulated abstractions, we specify package representation invariants (using `@invar` clauses in the fields' Javadoc comments) and package abstract state invariants (using `@invar` clauses in the classes' Javadoc comments and/or `@post` clauses in the Javadoc comments for the public inspectors):
 
 ```java
 package bigteams;
@@ -242,7 +242,6 @@ public class Team {
     /**
      * Initializes this object as representing an empty team.
      * 
-     * @mutates | this
      * @post This team has no members.
      *    | getMembers().isEmpty()
      */
@@ -436,7 +435,6 @@ public class Team {
     /**
      * Initializes this object as representing an empty team.
      * 
-     * @mutates | this
      * @post This team has no members.
      *    | getMembers().isEmpty()
      */
@@ -486,7 +484,7 @@ Notice the following:
 - An instance of a class that is part of a class-encapsulated abstraction nested within a package-encapsulated abstraction may have both a class-level peer group and a package-level peer group. The class-level peer group is always a subset of the package-level peer group. The class-level peer group is defined by the `@peerObject` and `@peerObjects` tags in the Javadoc comments for the class's private fields; the package-level peer group is defined by the `@peerObject (package-level)` and `@peerObjects (package-level)` tags in the Javadoc comments for the package's package-accessible getters. In the example, the objects have no class-level peer groups (or, equivalently, the class-level peer group of O is just the singleton {O}).
 - A class-encapsulated abstraction nested within a package-encapsulated abstraction informs its clients of its instances' peer objects by means of `@peerObject (class-level)` and/or `@peerObjects (class-level)` clauses in the Javadoc comments for the class' package-accessible getters.
 - We specify a class-level abstraction's representation invariants using `@invar` tags in the Javadoc comments for the class' private fields.
-- In the case of a class-encapsulated abstraction nested within a package-encapsulated abstraction, we specify the class-level abstraction's abstract state invariants using `@post` tags in the Javadoc comments for the class' nonprivate getters.
+- In the case of a class-encapsulated abstraction nested within a package-encapsulated abstraction, we specify the class-level abstraction's abstract state invariants using `@post` tags in the Javadoc comments for the class' package-accessible getters.
 - We specify a package-level abstraction's representation invariants using `@invar` tags in the Javadoc comments for the package's package-accessible fields or getters.
 - We specify a package-level abstraction's abstract state invariants using `@invar` tags in the Javadoc comments for the package's classes and/or using `@post` tags in the Javadoc comments for the package's public getters.
 - In the case of nested abstractions, a package-encapsulated abstraction's public getters should define the package-encapsulated abstraction's abstract state in terms of the constituent class-encapsulated abstractions' abstract states. Specifically, a package's public getters should not use private fields or methods in their bodies, so that their bodies make sense not just to code inside the same class, but to code in other classes of the package as well. The bodies of a package's public getters are considered to be visible to the authors of other classes within the package. (They are not considered to be part of the implementation of the class-encapsulated abstraction.)
