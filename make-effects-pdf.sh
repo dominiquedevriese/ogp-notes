@@ -9,7 +9,7 @@ else
   SED_IN_PLACE=(-i)
 fi
 sed "${SED_IN_PLACE[@]}" \
-  -e 's/\\chapter{Effects}/\\part{Part V: Effects}\\chapter{Effects}/' \
+  -e 's/\\chapter{Effects}/\\part{Part V: Effects}/' \
   effects.tex
 pdflatex effects.tex
 pdflatex effects.tex
