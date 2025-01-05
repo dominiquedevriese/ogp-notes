@@ -1,4 +1,4 @@
-# Effect Interfaces #
+### Effect Interfaces ###
 
 Encapsulating effects as procedures or objects is clearly a big improvement already, but our current effect abstractions as procedural abstractions or objects still have certain limitations.
 The current solutions assume essentially that the application uses only a single way to log messages.
@@ -80,10 +80,10 @@ Note that several instances of the class `BusinessLogic` can use different imple
 
 In what follows, we will refer to interfaces representing abstract effects as "effect interfaces", to classes implementing such an interface as "effect interface implementations" and to objects of those classes as "effect instances".
 
-# Implementing Effect Interfaces #
+## Working with Effect Interfaces ##
 Representing abstract effects as effect interfaces and implementing them in effect instances has many advantages.
 
-## Parameterized Effects ##
+### Parameterized Effects ###
 Implementations of effect interfaces may also be parameterized.
 For example, suppose that we have the following requirement:
 
@@ -109,7 +109,7 @@ public class Application {
 }
 ```
 
-## Effect Wrappers ##
+### Effect Wrappers ###
 
 Very often, it is useful to implement effect interfaces in such a way that they wrap other effect interfaces.
 For example, we've previously seen the `LengthRestrictedLog` class, which implements a log instance that enforces a maximum length of log messages:
@@ -156,7 +156,7 @@ public class MyApplication {
 By implementing `LengthRestrictedLog` in this way, we can now combine it with an underlying Log effect instance.
 Combining effect instances in this way is a very general way to construct effect instances.
 
-## Layers of Abstract Effects ##
+### Layers of Abstract Effects ###
 
 Another very common pattern is to construct layers of effect interfaces and implementations.
 For example, the `Database` class we've encountered before might itself represent the abstract effect of accessing a database for looking up and modifying data:
@@ -197,7 +197,7 @@ In other words, the effect instances that this code can account for can be organ
 Although we will not elaborate on this here, implementing software by identifying layers of effect abstractions is in fact a very general way to modularly design software.
 Conversely, many interfaces and classes that you can find in practical object-oriented source code can be understood as effect interfaces and instances to the application's effects (even if they weren't explicitly intended as such).
 
-## Unit Testing and Effect Stubbing ##
+### Unit Testing and Effect Stubbing ###
 
 One important scenario where the possibility of easily switching to alternative effect implementations is important is during testing.
 Unit testing framework often produce their own console output, in order to show the progress and intermediate results of unit tests.
@@ -252,7 +252,7 @@ class BusinessLogicTest {
 ```
 Using the stored buffer of effects, the above code tests whether the right effects have happened.
 
-## Effect Interfaces in Java ##
+### Effect Interfaces in Java ###
 
 Many interfaces and classes in Java are really effect interfaces.
 A good example is the `java.io.OutputStream` abstract class in the Java standard library that we show a snippet of here:

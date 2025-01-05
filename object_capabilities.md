@@ -1,4 +1,4 @@
-# Capabilities and capability-safety #
+## Capabilities and capability-safety ##
 
 Let us take another look at a code snippet we have seen above:
 ```java

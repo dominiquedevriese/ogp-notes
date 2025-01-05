@@ -37,7 +37,7 @@ For example, if we are implementing a network server application, then ensuring 
 * The server should continuously listen on network sockets for incoming requests.
 * When a packet comes in, the server should produce a corresponding response.
 * Outgoing responses should be formatted according to the protocol implemented.
-* Outgoing responses should contain the information that corresponds to the incoming request according to their configuration.
+* Outgoing responses should contain the information that corresponds to the incoming request according to the server configuration.
 * Outgoing responses should not contain confidential information unless the request has been successfully authenticated and authorized.
 * ...
 
@@ -55,7 +55,11 @@ For example, when a webserver invokes a database, it is often desirable to keep 
 Similarly, when the webserver needs to log messages, it is best to keep it unaware of how log messages are stored (e.g. on the local disk, on a developer console, on a remote log server etc.), the format in which log messages are stored, whether filtering is applied before logging (e.g. to anonymize clients' private information) etc.
 By keeping the web server unaware of such details, it will not need to be updated when logging requirements change.
 
-# Basic Console Effects in Java #
+## Working with effects ##
+
+To make things concrete, let us take a look at how Java Programs typically deal with external effects.
+
+### Basic Console Effects in Java ###
 
 For ease of discussion, we will use console output as a recurring example in this chapter.
 However, all of our discussion applies equally to other types of external effects.
@@ -86,7 +90,7 @@ class HelloSomeone {
 }
 ```
 
-# A non-modular treatment of effects #
+### A non-modular treatment of effects ###
 
 Now imagine that an application uses console output for logging purposes.
 Concretely, different components in an application output messages on the console to keep track of the internal steps they have performed and errors they encounter as part of responding to a user request.
@@ -157,7 +161,8 @@ Imagine that all components in a system would have direct access to implementati
 That would make it practically impossible to enforce invariants on the internal state of the class and it would also make it impossible to change to a different internal representation.
 The problem in our logging example is no different: internal implementation details of the logging effect are not properly encapsulated and because of this, it is impossible to enforce properties on what is logged or change to a different implementation of the logging effect.
 
-# Procedural Effect Abstractions #
+## Effect Abstractions ##
+### Procedural Effect Abstractions ###
 
 An interesting perspective to understand the problem and how to solve it, is to imagine that `System.out` does not represent output to an output channel outside the application, but instead logs all messages to an in-memory buffer, something like this:
 ```java
@@ -288,7 +293,7 @@ and
 
 similarly become easy to implement, but we leave them as an exercise for the reader.
 
-# Single-Object Effect Abstractions #
+### Single-Object Effect Abstractions ###
 
 But what if we want to enforce properties about effects that may mutate memory ("stateful effects"), for example:
 
